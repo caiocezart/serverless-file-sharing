@@ -1,4 +1,4 @@
-# file-uploader
+# serverless-file-sharing
 Full serverlerss application to upload and share files using the following technologies:
 
 - Serverless Framework
