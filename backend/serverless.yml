@@ -1,0 +1,147 @@
+# NOTE: update this with your service name
+service: file-uploader
+
+# Use the serverless-webpack plugin to transpile ES6
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or fallsback to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  # Set our DynamoDB throughput for prod and all other non-prod stages.
+  tableThroughputs:
+    prod: 5
+    default: 1
+  tableThroughput: ${self:custom.tableThroughputs.${self:custom.stage}, self:custom.tableThroughputs.default}
+  # Load our webpack config
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: ap-southeast-2
+  environment:
+    tableName:
+      Ref: FilesTable
+    bucketName:
+      Ref: AttachmentsBucket
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - "Fn::GetAtt": [ FilesTable, Arn ]
+
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+        - s3:GetObject
+      Resource:        
+        - Fn::Join:
+          - ''
+          -
+            - "Fn::GetAtt": [AttachmentsBucket, Arn]
+            - '/public/*'
+
+functions:
+  create:
+    handler: create.main
+    events:
+      - http:
+          path: files
+          method: post
+          cors: true
+          authorizer: aws_iam
+
+  get:
+    # Defines an HTTP API endpoint that calls the main function in get.js
+    # - path: url path is /files/{id}
+    # - method: GET request
+    handler: get.main
+    events:
+      - http:
+          path: files/{id}
+          method: get
+          cors: true
+          authorizer: aws_iam
+
+  list:
+    # Defines an HTTP API endpoint that calls the main function in list.js
+    # - path: url path is /files
+    # - method: GET request
+    handler: list.main
+    events:
+      - http:
+          path: files
+          method: get
+          cors: true
+          authorizer: aws_iam
+
+  update:
+    # Defines an HTTP API endpoint that calls the main function in update.js
+    # - path: url path is /files/{id}
+    # - method: PUT request
+    handler: update.main
+    events:
+      - http:
+          path: files/{id}
+          method: put
+          cors: true
+          authorizer: aws_iam
+
+  delete:
+    # Defines an HTTP API endpoint that calls the main function in delete.js
+    # - path: url path is /files/{id}
+    # - method: DELETE request
+    handler: delete.main
+    events:
+      - http:
+          path: files/{id}
+          method: delete
+          cors: true
+          authorizer: aws_iam
+
+  s3sign:
+    # Defines an HTTP API endpoint that calls the main function in s3-sign-link.js
+    # - path: url path is /files/{id}/sign
+    # - method: PUT request
+    handler: s3-sign-link.main
+    events:
+      - http:
+          path: files/{id}/sign
+          method: put
+          cors: true
+          authorizer: aws_iam
+
+  load:
+    # Defines an HTTP API endpoint that calls the main function in s3-sign-link.js
+    # - path: url path is /files/{id}/sign
+    # - method: PUT request
+    handler: load.main
+    events:
+      - http:
+          path: files/{id}/load
+          method: get
+          cors: true
+          
+# Create our resources with separate CloudFormation templates
+resources:
+  # DynamoDB
+  - ${file(resources/dynamodb-table.yml)}
+  # S3
+  - ${file(resources/s3-bucket.yml)}
+  # Cognito
+  - ${file(resources/cognito-user-pool.yml)}
+  - ${file(resources/cognito-identity-pool.yml)}
