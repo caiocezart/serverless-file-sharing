@@ -25,7 +25,7 @@ Give a name to the project editing the field `service` on the file `serverless.y
 
 Deploy the backend
 
-`serverless deploy`
+`serverless deploy -v`
 
 ## Frontend
 Go to the frontend folder

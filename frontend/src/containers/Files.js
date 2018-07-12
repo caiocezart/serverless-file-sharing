@@ -19,14 +19,15 @@ export default class Files extends Component {
             passwordExpiryDate: '',
             s3Url: '',
             attachment: '',
-            fileId: ''
+            fileId: '',
+            password: ''
         };
     }
 
     async componentDidMount() {
         await this.getFile()
             .then(file => {
-                const { attachment, content, fileId, passwordExpiryDate, s3Url } = file;
+                const { attachment, content, fileId, passwordExpiryDate, s3Url, password } = file;
 
                 this.setState({
                     attachment,
@@ -34,7 +35,8 @@ export default class Files extends Component {
                     content,
                     fileId,
                     passwordExpiryDate,
-                    s3Url
+                    s3Url,
+                    password
                 });
 
                 this.setState({
@@ -156,6 +158,14 @@ export default class Files extends Component {
                 {
                     this.state.file &&
                     <form onSubmit={this.handleSubmit}>
+                        <ControlLabel>File Id</ControlLabel>
+                        <FormGroup controlId="fileId">
+                            <FormControl
+                                readOnly
+                                value={this.state.fileId}
+                                componentClass="input"
+                            />
+                        </FormGroup>
                         <ControlLabel>Description</ControlLabel>
                         <FormGroup controlId="content">
                             <FormControl
@@ -168,7 +178,7 @@ export default class Files extends Component {
                         <FormGroup controlId="password">
                             <FormControl
                                 readOnly
-                                value={this.state.fileId}
+                                value={this.state.password}
                                 componentClass="input"
                             />
                         </FormGroup>

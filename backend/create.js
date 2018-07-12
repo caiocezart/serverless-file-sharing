@@ -6,6 +6,16 @@ import AWS from "aws-sdk";
 AWS.config.update({ region: "ap-southeast-2" });
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
+function makeid(chars) {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (var i = 0; i < chars; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+}
+
 export async function main(event, context, callback) {
     const data = JSON.parse(event.body);
 
@@ -22,7 +32,7 @@ export async function main(event, context, callback) {
             content: data.content,
             attachment: data.attachment,
             createdAt: Date.now(),
-            password: uuid.v1(),
+            password: makeid(8),
             passwordExpiryDate: newExpiryDate.getTime()
         }
     };

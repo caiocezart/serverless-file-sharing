@@ -4,9 +4,12 @@ import { S3 } from 'aws-sdk';
 
 export async function main(event, context, callback) {
     console.log(event.pathParameters.id);
+    const data = JSON.parse(event.body);
+
+
     const params = {
         TableName: process.env.tableName,
-        // TableName: 'dev-files-table',
+        // TableName: 'dev-file-sharing-table',
         Key: {
             fileId: event.pathParameters.id
         }
@@ -14,12 +17,17 @@ export async function main(event, context, callback) {
 
     try {
         const result = await dynamoDbLib.call("get", params);
+        const diffDataMilliseconds = result.Item.passwordExpiryDate - new Date().getTime();
 
-        if (result.Item) {
-            const diffDataMilliseconds = result.Item.passwordExpiryDate - new Date().getTime();
-            console.log(diffDataMilliseconds)
-            // if still valid
-            if (diffDataMilliseconds > 0) {
+        // if still valid
+        if (diffDataMilliseconds <= 0) {
+            callback(null, success({ status: false, message: 'File expired.' }));
+        }
+        else {
+            if (result.Item.password !== data.password) {
+                callback(null, success({ status: false, message: 'Wrong password or File ID.' }));
+            }
+            else {
                 const s3 = new S3({ region: 'ap-southeast-2', signatureVersion: 'v4' });
 
                 const signedUrl = await s3.getSignedUrl('getObject', {
@@ -44,9 +52,7 @@ export async function main(event, context, callback) {
                         console.log(e);
                         callback(null, failure({ status: false, message: e }));
                     }
-                }                
-            } else {
-                callback(null, success({ status: false, message: 'File password expired.' }));
+                }
             }
         }
     } catch (e) {

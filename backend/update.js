@@ -1,6 +1,16 @@
 import * as dynamoDbLib from "./libs/dynamodb-lib";
 import { success, failure } from "./libs/response-lib";
 
+function makeid(chars) {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < chars; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
+
 export async function main(event, context, callback) {
   const data = JSON.parse(event.body);
 
@@ -14,9 +24,10 @@ export async function main(event, context, callback) {
     Key: {
       fileId: event.pathParameters.id
     },
-    UpdateExpression: "SET passwordExpiryDate = :passwordExpiryDate",
+    UpdateExpression: "SET passwordExpiryDate = :passwordExpiryDate, password = :password",
     ExpressionAttributeValues: {
-      ":passwordExpiryDate": newExpiryDate.getTime()
+      ":passwordExpiryDate": newExpiryDate.getTime(),
+      ":password": makeid(8)
     },
     ReturnValues: "ALL_NEW"
   };
