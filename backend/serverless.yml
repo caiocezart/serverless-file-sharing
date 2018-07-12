@@ -1,5 +1,5 @@
 # NOTE: update this with your service name
-service: file-uploader
+service: file-sharing
 
 # Use the serverless-webpack plugin to transpile ES6
 plugins:
@@ -133,7 +133,7 @@ functions:
     events:
       - http:
           path: files/{id}/load
-          method: get
+          method: post
           cors: true
           
 # Create our resources with separate CloudFormation templates
