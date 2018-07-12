@@ -1,6 +1,16 @@
 # serverless-file-sharing
-Full serverlerss application to upload and share files using the following technologies:
+Full serverlerss application to upload and temporary share files. Being serverless, there is no upcoming costs with AWS, it is all based on usage of the following AWS services: Lambda / DynamoDB / Cognito / API Gateway / S3.
 
+# Flow
+- Administrator login, upload files and get a single link per file with 24hours expiry date.
+- Admin shares the url to users and they can download the file until the date is valid.
+- Admin can always edit the file and renew the expiration date.
+
+# What is next?
+- Pagination / search / sort
+- Flexibility on expiration date
+
+# Technologies
 - Serverless Framework
 - React
 - NodeJS
